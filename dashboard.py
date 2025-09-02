@@ -5,8 +5,6 @@ def dashboard_view(page: ft.Page, db: 'Database'):
     page.bgcolor = ft.Colors.BLACK
     page.padding = 0
 
-  
-
     # Gradient background
     background = ft.Container(
         content=ft.Container(),
@@ -18,144 +16,176 @@ def dashboard_view(page: ft.Page, db: 'Database'):
         expand=True,
     )
 
-    # Title with shadow via Container
-    title = ft.Container(
-        content=ft.Text(
-            "Restaurant Dashboard",
-            size=24,
-            weight=ft.FontWeight.BOLD,
-            color=ft.Colors.WHITE,
-            text_align=ft.TextAlign.CENTER,
-            font_family="Roboto",
-        ),
-        shadow=ft.BoxShadow(
-            blur_radius=8,
-            spread_radius=1,
-            color=ft.Colors.BLACK26,
-        ),
-        padding=8,
-    )
+    # Title (commented out to avoid AppBar conflict)
+    # title = ft.Container(
+    #     content=ft.Text(
+    #         "AKBER TIKKA Dashboard",
+    #         size=24,
+    #         weight=ft.FontWeight.BOLD,
+    #         color=ft.Colors.WHITE,
+    #         text_align=ft.TextAlign.CENTER,
+    #         font_family="Roboto",
+    #     ),
+    #     shadow=ft.BoxShadow(
+    #         blur_radius=8,
+    #         spread_radius=1,
+    #         color=ft.Colors.BLACK26,
+    #     ),
+    #     padding=8,
+    #     margin=ft.margin.only(top=10, bottom=10),
+    # )
 
-    # Button style with hover effect using opacity
-    button_style = ft.ButtonStyle(
-        shape=ft.RoundedRectangleBorder(radius=10),
-        bgcolor=ft.Colors.WHITE,
-        padding=10,
-        elevation={"pressed": 2, "": 6},
-    )
-
-    # Grid of buttons
-    button_grid = ft.GridView(
-        runs_count=1,  # Single column for mobile
-        max_extent=300,
-        child_aspect_ratio=1.3,
-        spacing=10,
-        run_spacing=10,
-        padding=10,
+    # Card list in a Column
+    card_list = ft.Column(
         controls=[
-            ft.ElevatedButton(
-                content=ft.Column(
-                    [
-                        ft.Icon(ft.Icons.RESTAURANT_MENU, color=ft.Colors.BLUE_700, size=30),
-                        ft.Text("Order", color=ft.Colors.BLUE_700, weight=ft.FontWeight.BOLD, size=14),
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    spacing=8,
+            ft.GestureDetector(
+                content=ft.Card(
+                    content=ft.Container(
+                        content=ft.Column(
+                            [
+                                ft.Icon(ft.Icons.RESTAURANT_MENU, color=ft.Colors.BLUE_700, size=30),
+                                ft.Text("Order", color=ft.Colors.BLUE_700, weight=ft.FontWeight.BOLD, size=14),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                            spacing=8,
+                        ),
+                        padding=10,
+                        shape=ft.RoundedRectangleBorder(radius=10),
+                        width=340,
+                    ),
+                    elevation=6,
+                    color=ft.Colors.BLUE_50,
                 ),
-                style=button_style,
-                on_click=lambda e: page.go("/menu"),
-                opacity=1.0,
-                on_hover=lambda e: setattr(e.control, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.update(),
+                on_tap=lambda e: page.go("/menu"),
+                on_hover=lambda e: setattr(e.control.content, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.content.update(),
             ),
-            ft.ElevatedButton(
-                content=ft.Column(
-                    [
-                        ft.Icon(ft.Icons.MONETIZATION_ON, color=ft.Colors.GREEN_700, size=30),
-                        ft.Text("Sale", color=ft.Colors.GREEN_700, weight=ft.FontWeight.BOLD, size=14),
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    spacing=8,
+            ft.GestureDetector(
+                content=ft.Card(
+                    content=ft.Container(
+                        content=ft.Column(
+                            [
+                                ft.Icon(ft.Icons.MONETIZATION_ON, color=ft.Colors.GREEN_700, size=30),
+                                ft.Text("Sale", color=ft.Colors.GREEN_700, weight=ft.FontWeight.BOLD, size=14),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                            spacing=8,
+                        ),
+                        padding=10,
+                        shape=ft.RoundedRectangleBorder(radius=10),
+                        width=340,
+                    ),
+                    elevation=6,
+                    color=ft.Colors.GREEN_50,
                 ),
-                style=button_style,
-                on_click=lambda e: page.go("/sale"),
-                opacity=1.0,
-                on_hover=lambda e: setattr(e.control, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.update(),
+                on_tap=lambda e: page.go("/sale"),
+                on_hover=lambda e: setattr(e.control.content, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.content.update(),
             ),
-            ft.ElevatedButton(
-                content=ft.Column(
-                    [
-                        ft.Icon(ft.Icons.MONEY_OFF, color=ft.Colors.AMBER_700, size=30),
-                        ft.Text("Expense", color=ft.Colors.AMBER_700, weight=ft.FontWeight.BOLD, size=14),
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    spacing=8,
+            ft.GestureDetector(
+                content=ft.Card(
+                    content=ft.Container(
+                        content=ft.Column(
+                            [
+                                ft.Icon(ft.Icons.MONEY_OFF, color=ft.Colors.AMBER_700, size=30),
+                                ft.Text("Expense", color=ft.Colors.AMBER_700, weight=ft.FontWeight.BOLD, size=14),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                            spacing=8,
+                        ),
+                        padding=10,
+                        shape=ft.RoundedRectangleBorder(radius=10),
+                        width=340,
+                    ),
+                    elevation=6,
+                    color=ft.Colors.AMBER_50,
                 ),
-                style=button_style,
-                on_click=lambda e: page.go("/expense"),
-                opacity=1.0,
-                on_hover=lambda e: setattr(e.control, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.update(),
+                on_tap=lambda e: page.go("/expense"),
+                on_hover=lambda e: setattr(e.control.content, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.content.update(),
             ),
-            ft.ElevatedButton(
-                content=ft.Column(
-                    [
-                        ft.Icon(ft.Icons.MENU_BOOK, color=ft.Colors.PURPLE_700, size=30),
-                        ft.Text("Menu", color=ft.Colors.PURPLE_700, weight=ft.FontWeight.BOLD, size=14),
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    spacing=8,
+            ft.GestureDetector(
+                content=ft.Card(
+                    content=ft.Container(
+                        content=ft.Column(
+                            [
+                                ft.Icon(ft.Icons.MENU_BOOK, color=ft.Colors.PURPLE_700, size=30),
+                                ft.Text("Menu", color=ft.Colors.PURPLE_700, weight=ft.FontWeight.BOLD, size=14),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                            spacing=8,
+                        ),
+                        padding=10,
+                        shape=ft.RoundedRectangleBorder(radius=10),
+                        width=340,
+                    ),
+                    elevation=6,
+                    color=ft.Colors.PURPLE_50,
                 ),
-                style=button_style,
-                on_click=lambda e: page.go("/menu"),
-                opacity=1.0,
-                on_hover=lambda e: setattr(e.control, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.update(),
+                on_tap=lambda e: page.go("/menu"),
+                on_hover=lambda e: setattr(e.control.content, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.content.update(),
             ),
-            ft.ElevatedButton(
-                content=ft.Column(
-                    [
-                        ft.Icon(ft.Icons.ADD_SHOPPING_CART, color=ft.Colors.ORANGE_700, size=30),
-                        ft.Text("Add Product", color=ft.Colors.ORANGE_700, weight=ft.FontWeight.BOLD, size=14),
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    spacing=8,
+            ft.GestureDetector(
+                content=ft.Card(
+                    content=ft.Container(
+                        content=ft.Column(
+                            [
+                                ft.Icon(ft.Icons.ADD_SHOPPING_CART, color=ft.Colors.ORANGE_700, size=30),
+                                ft.Text("Add Product", color=ft.Colors.ORANGE_700, weight=ft.FontWeight.BOLD, size=14),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                            spacing=8,
+                        ),
+                        padding=10,
+                        shape=ft.RoundedRectangleBorder(radius=10),
+                        width=340,
+                    ),
+                    elevation=6,
+                    color=ft.Colors.ORANGE_100,
                 ),
-                style=button_style,
-                on_click=lambda e: page.go("/products"),
-                opacity=1.0,
-                on_hover=lambda e: setattr(e.control, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.update(),
+                on_tap=lambda e: page.go("/products"),
+                on_hover=lambda e: setattr(e.control.content, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.content.update(),
             ),
-            ft.ElevatedButton(
-                content=ft.Column(
-                    [
-                        ft.Icon(ft.Icons.LIST_ALT, color=ft.Colors.TEAL_700, size=30),
-                        ft.Text("Orders", color=ft.Colors.TEAL_700, weight=ft.FontWeight.BOLD, size=14),
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    spacing=8,
+            ft.GestureDetector(
+                content=ft.Card(
+                    content=ft.Container(
+                        content=ft.Column(
+                            [
+                                ft.Icon(ft.Icons.LIST_ALT, color=ft.Colors.TEAL_700, size=30),
+                                ft.Text("Orders", color=ft.Colors.TEAL_700, weight=ft.FontWeight.BOLD, size=14),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                            spacing=8,
+                        ),
+                        padding=10,
+                        shape=ft.RoundedRectangleBorder(radius=10),
+                        width=340,
+                    ),
+                    elevation=6,
+                    color=ft.Colors.TEAL_50,
                 ),
-                style=button_style,
-                on_click=lambda e: page.go("/orders"),
-                opacity=1.0,
-                on_hover=lambda e: setattr(e.control, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.update(),
+                on_tap=lambda e: page.go("/orders"),
+                on_hover=lambda e: setattr(e.control.content, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.content.update(),
             ),
         ],
+        spacing=10,
+        alignment=ft.MainAxisAlignment.CENTER,
+        scroll=ft.ScrollMode.AUTO,
     )
 
-    # Debug print to confirm button grid creation
-    print(f"Button grid controls: {len(button_grid.controls)} buttons")
+    # Debug print
+    print(f"Card list controls: {len(card_list.controls)} cards")
 
     # Main content container
     dashboard_content = ft.Container(
         content=ft.Column(
             [
-                # title,
+                # title,  # Commented to avoid AppBar conflict
                 ft.Container(
-                    content=button_grid,
+                    content=card_list,
                     bgcolor=ft.Colors.WHITE,
                     border_radius=10,
                     padding=10,
