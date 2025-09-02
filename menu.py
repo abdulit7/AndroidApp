@@ -1,5 +1,5 @@
 import flet as ft
-from escpos.printer import Serial
+from escpos.printer import Network  # Use Network for Android compatibility
 import time
 import uuid
 from datetime import datetime
@@ -7,7 +7,7 @@ from datetime import datetime
 MENU_ITEMS = []
 ORDERS = {"dine_in": {}, "takeaway": {}, "Delivery": {}}
 TOTAL_SALES = 0.0
-COM_PORT = "COM3"
+COM_PORT = "192.168.1.100"  # Replace with your printer's IP for Android
 
 def menu_view(page: ft.Page, db: 'Database'):
     page.title = "Menu"
@@ -62,7 +62,7 @@ def menu_view(page: ft.Page, db: 'Database'):
             page.update()
             return
         try:
-            p = Serial(devfile=COM_PORT, baudrate=9600, timeout=5)
+            p = Network(COM_PORT)  # Use network printer for Android
             p.text(f"{current_order_type.replace('_', ' ').title()} Receipt\n")
             p.text(f"Order ID: {order_id}\n")
             p.text(f"Date: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
@@ -93,7 +93,7 @@ def menu_view(page: ft.Page, db: 'Database'):
             page.update()
             return
         try:
-            p = Serial(devfile=COM_PORT, baudrate=9600, timeout=5)
+            p = Network(COM_PORT)  # Use network printer for Android
             p.text(f"{current_order_type.replace('_', ' ').title()} Bill\n")
             p.text(f"Order ID: {order_id}\n")
             p.text(f"Date: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
@@ -125,14 +125,11 @@ def menu_view(page: ft.Page, db: 'Database'):
             page.update()
 
     menu_title = ft.Text("Menu", size=20, weight=ft.FontWeight.BOLD, color=ft.Colors.BROWN_800)
-    menu_container = ft.GridView(
+    menu_container = ft.ListView(  # Replaced GridView with ListView for single-column layout
         expand=1,
-        runs_count=1,  # Single column for mobile
-        max_extent=300,
-        child_aspect_ratio=1.5,
         spacing=10,
-        run_spacing=10,
         padding=10,
+        auto_scroll=True,
     )
 
     def update_menu_container():
@@ -162,6 +159,7 @@ def menu_view(page: ft.Page, db: 'Database'):
                             spacing=8,
                         ),
                         padding=10,
+                        width=340,  # Constrain card width for mobile
                     ),
                     key=item["name"],
                 )
@@ -321,7 +319,6 @@ def menu_view(page: ft.Page, db: 'Database'):
                 return
 
             dialog.open = False
-            # page.overlay.remove(dialog)
             page.update()
 
             complete_order_with_details(table_number, customer_name, customer_number, address)
@@ -391,26 +388,15 @@ def menu_view(page: ft.Page, db: 'Database'):
     menu_content = ft.Container(
         content=ft.Column(
             [
-                # ft.Container(
-                #     content=ft.Row(
-                #         [
-                #             ft.Text("Menu", size=20, weight=ft.FontWeight.BOLD, color=ft.Colors.BROWN_800),
-                #             ft.ElevatedButton(
-                #                 "Back to Dashboard",
-                #                 icon=ft.Icons.ARROW_BACK,
-                #                 color=ft.Colors.BLUE_500,
-                #                 on_click=lambda e: page.go("/dashboard"),
-                #                 style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
-                #             ),
-                #         ],
-                #         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                #     ),
-                #     padding=8,
-                #     bgcolor=ft.Colors.ORANGE_300,
-                #     border_radius=8,
-                #     margin=ft.margin.only(bottom=10),
-                # ),
                 tabs,
+                order_type_display,
+                ft.Container(
+                    content=menu_title,
+                    padding=8,
+                    bgcolor=ft.Colors.ORANGE_300,
+                    border_radius=8,
+                    margin=ft.margin.only(bottom=10),
+                ),
                 ft.Container(
                     content=menu_container,
                     padding=10,
