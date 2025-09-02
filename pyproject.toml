@@ -7,8 +7,8 @@ authors = [
 ]
 dependencies = [
   "flet==0.28.3",
+  "DateTime",
   "python-escpos==2.0.0"
-  "DateTime"
 ]
 
 [tool.flet]
@@ -29,6 +29,9 @@ split_per_abi = false
 "android.permission.READ_EXTERNAL_STORAGE" = true
 "android.permission.READ_MEDIA_IMAGES" = true
 "android.permission.WRITE_EXTERNAL_STORAGE" = true
-
-[tool.flet.android.feature]
-"android.hardware.camera" = false
+"android.permission.USB_PERMISSION" = true
+"android.permission.SERIAL_PORT" = true
+"android.permission.BLUETOOTH" = true
+"android.permission.BLUETOOTH_ADMIN" = true
+"android.permission.BLUETOOTH_CONNECT" = true
+"android.permission.BLUETOOTH_SCAN" = true
