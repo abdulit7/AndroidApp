@@ -7,7 +7,7 @@ authors = [
 ]
 dependencies = [
   "flet==0.28.3",
-  "escpos",
+  "python-escpos==2.0.0"
   "DateTime"
 ]
 
