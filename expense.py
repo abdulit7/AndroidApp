@@ -1,16 +1,17 @@
+
+
 import flet as ft
 import datetime
-
-EXPENSES = {"Rent": 5000, "Water": 500, "Fuel": 500, "Other": 400}  # Initial static expenses
-TOTAL_EXPENSES = sum(EXPENSES.values())
 
 def expense_view(page: ft.Page, db: 'Database'):
     page.title = "Expenses"
     page.bgcolor = ft.Colors.BLACK
     page.padding = 0
 
-    def close_dialog(e):
-        page.dialog.open = False
+    def close_dialog(dialog):
+        dialog.open = False
+        # if dialog in page.overlay:
+        #     page.overlay.remove(dialog)
         page.update()
 
     # Dialog for adding expense
@@ -21,7 +22,7 @@ def expense_view(page: ft.Page, db: 'Database'):
                 label="Category",
                 value="",
                 width=300,
-                text_size=14,
+                text_style=ft.TextStyle(size=14),
                 color=ft.Colors.BLUE_GREY_900,
                 border_color=ft.Colors.AMBER_400,
                 focused_border_color=ft.Colors.AMBER_600,
@@ -30,7 +31,7 @@ def expense_view(page: ft.Page, db: 'Database'):
                 label="Amount",
                 keyboard_type=ft.KeyboardType.NUMBER,
                 width=150,
-                text_size=14,
+                text_style=ft.TextStyle(size=14),
                 color=ft.Colors.BLUE_GREY_900,
                 border_color=ft.Colors.AMBER_400,
                 focused_border_color=ft.Colors.AMBER_600,
@@ -51,7 +52,7 @@ def expense_view(page: ft.Page, db: 'Database'):
                         icon=ft.Icons.CANCEL,
                         color=ft.Colors.RED_500,
                         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
-                        on_click=close_dialog,
+                        on_click=lambda e: close_dialog(add_expense_dialog),
                         opacity=1.0,
                         on_hover=lambda e: setattr(e.control, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.update(),
                     ),
@@ -86,12 +87,139 @@ def expense_view(page: ft.Page, db: 'Database'):
             if amount <= 0:
                 raise ValueError("Amount must be positive")
             db.add_expense(category, amount, datetime.datetime.now().strftime("%Y-%m-%d"))
-            add_expense_dialog.open = False
+            close_dialog(add_expense_dialog)
             update_expense_display()
             page.snack_bar = ft.SnackBar(content=ft.Text(f"Expense '{category}: Rs{amount:.2f}' added!", color=ft.Colors.GREEN_600), open=True)
         except ValueError as ve:
             error_msg = str(ve) if str(ve) != "Amount must be positive" else "Please enter a valid positive amount!"
             page.snack_bar = ft.SnackBar(content=ft.Text(error_msg, color=ft.Colors.RED_500), open=True)
+        page.update()
+
+    # Dialog for editing expense
+    def show_edit_expense_dialog(e, expense_id, category, amount):
+        edit_category_field = ft.TextField(
+            label="Category",
+            value=category,
+            width=300,
+            text_style=ft.TextStyle(size=14),
+            color=ft.Colors.BLUE_GREY_900,
+            border_color=ft.Colors.AMBER_400,
+            focused_border_color=ft.Colors.AMBER_600,
+        )
+        edit_amount_field = ft.TextField(
+            label="Amount",
+            value=str(amount),
+            keyboard_type=ft.KeyboardType.NUMBER,
+            width=150,
+            text_style=ft.TextStyle(size=14),
+            color=ft.Colors.BLUE_GREY_900,
+            border_color=ft.Colors.AMBER_400,
+            focused_border_color=ft.Colors.AMBER_600,
+        )
+
+        def save_edit(e):
+            new_category = edit_category_field.value.strip()
+            amount_str = edit_amount_field.value.strip()
+            if not new_category or not amount_str:
+                page.snack_bar = ft.SnackBar(content=ft.Text("Please enter both category and amount!", color=ft.Colors.RED_500), open=True)
+                page.update()
+                return
+            try:
+                new_amount = float(amount_str)
+                if new_amount <= 0:
+                    raise ValueError("Amount must be positive")
+                db.edit_expense(expense_id, new_category, new_amount)
+                close_dialog(edit_expense_dialog)
+                update_expense_display()
+                page.snack_bar = ft.SnackBar(content=ft.Text(f"Expense '{new_category}: Rs{new_amount:.2f}' updated!", color=ft.Colors.GREEN_600), open=True)
+            except ValueError as ve:
+                error_msg = str(ve) if str(ve) != "Amount must be positive" else "Please enter a valid positive amount!"
+                page.snack_bar = ft.SnackBar(content=ft.Text(error_msg, color=ft.Colors.RED_500), open=True)
+            page.update()
+
+        edit_expense_dialog = ft.AlertDialog(
+            title=ft.Text(f"Edit Expense: {category}", color=ft.Colors.BROWN_800, size=18, weight=ft.FontWeight.BOLD),
+            content=ft.Column(
+                [
+                    edit_category_field,
+                    edit_amount_field,
+                    ft.Row(
+                        [
+                            ft.ElevatedButton(
+                                "Save",
+                                icon=ft.Icons.SAVE,
+                                color=ft.Colors.GREEN_600,
+                                style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
+                                on_click=save_edit,
+                                opacity=1.0,
+                                on_hover=lambda e: setattr(e.control, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.update(),
+                            ),
+                            ft.ElevatedButton(
+                                "Cancel",
+                                icon=ft.Icons.CANCEL,
+                                color=ft.Colors.RED_500,
+                                style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
+                                on_click=lambda e: close_dialog(edit_expense_dialog),
+                                opacity=1.0,
+                                on_hover=lambda e: setattr(e.control, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.update(),
+                            ),
+                        ],
+                        alignment=ft.MainAxisAlignment.END,
+                        spacing=10,
+                    ),
+                ],
+                tight=True,
+                spacing=10,
+            ),
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        # page.overlay.clear()
+        page.overlay.append(edit_expense_dialog)
+        page.dialog = edit_expense_dialog
+        edit_expense_dialog.open = True
+        page.update()
+
+    # Dialog for deleting expense
+    def show_delete_expense_dialog(e, expense_id, category):
+        def confirm_delete(e):
+            try:
+                db.delete_expense(expense_id)
+                close_dialog(delete_expense_dialog)
+                update_expense_display()
+                page.snack_bar = ft.SnackBar(content=ft.Text(f"Expense '{category}' deleted!", color=ft.Colors.GREEN_600), open=True)
+            except Exception as ex:
+                page.snack_bar = ft.SnackBar(content=ft.Text(f"Error deleting expense: {str(ex)}", color=ft.Colors.RED_500), open=True)
+            page.update()
+
+        delete_expense_dialog = ft.AlertDialog(
+            title=ft.Text(f"Delete Expense: {category}", color=ft.Colors.BROWN_800, size=18, weight=ft.FontWeight.BOLD),
+            content=ft.Text(f"Are you sure you want to delete '{category}'?"),
+            actions=[
+                ft.ElevatedButton(
+                    "Delete",
+                    icon=ft.Icons.DELETE,
+                    color=ft.Colors.RED_500,
+                    style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
+                    on_click=confirm_delete,
+                    opacity=1.0,
+                    on_hover=lambda e: setattr(e.control, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.update(),
+                ),
+                ft.ElevatedButton(
+                    "Cancel",
+                    icon=ft.Icons.CANCEL,
+                    color=ft.Colors.BLUE_700,
+                    style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
+                    on_click=lambda e: close_dialog(delete_expense_dialog),
+                    opacity=1.0,
+                    on_hover=lambda e: setattr(e.control, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.update(),
+                ),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        # page.overlay.clear()
+        page.overlay.append(delete_expense_dialog)
+        page.dialog = delete_expense_dialog
+        delete_expense_dialog.open = True
         page.update()
 
     # DatePicker for date selection
@@ -160,26 +288,51 @@ def expense_view(page: ft.Page, db: 'Database'):
             )
         )
         if today_expenses:
-            for cat, amt in today_expenses:
+            for idx, (cat, amt) in enumerate(today_expenses):
+                expense_id = f"{today}_{idx}"  # Workaround if expense_id is missing
                 expense_list.controls.append(
-                    ft.Container(
-                        content=ft.Row(
-                            [
-                                ft.Text(f"{cat}", size=14, weight=ft.FontWeight.W_500, color=ft.Colors.BLACK87),
-                                ft.Text(f"Rs{amt:.2f}", size=14, weight=ft.FontWeight.BOLD, color=ft.Colors.RED_700),
-                            ],
-                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    ft.GestureDetector(
+                        content=ft.Container(
+                            content=ft.Row(
+                                [
+                                    ft.Text(f"{cat}", size=12, weight=ft.FontWeight.W_500, color=ft.Colors.BLACK87, max_lines=1),
+                                    ft.Row(
+                                        [
+                                            ft.Text(f"Rs{amt:.2f}", size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.RED_700),
+                                            ft.IconButton(
+                                                ft.Icons.EDIT,
+                                                icon_color=ft.Colors.BLUE_500,
+                                                icon_size=16,
+                                                tooltip="Edit",
+                                                on_click=lambda e, eid=expense_id, c=cat, a=amt: show_edit_expense_dialog(e, eid, c, a),
+                                            ),
+                                            ft.IconButton(
+                                                ft.Icons.DELETE,
+                                                icon_color=ft.Colors.RED_500,
+                                                icon_size=16,
+                                                tooltip="Delete",
+                                                on_click=lambda e, eid=expense_id, c=cat: show_delete_expense_dialog(e, eid, c),
+                                            ),
+                                        ],
+                                        alignment=ft.MainAxisAlignment.END,
+                                        spacing=5,
+                                    ),
+                                ],
+                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                            ),
+                            bgcolor=ft.Colors.WHITE,
+                            padding=10,
+                            border_radius=8,
+                            shadow=ft.BoxShadow(blur_radius=5, spread_radius=1, color=ft.Colors.BLACK12),
+                            width=340,
                         ),
-                        bgcolor=ft.Colors.WHITE,
-                        padding=10,
-                        border_radius=8,
-                        shadow=ft.BoxShadow(blur_radius=5, spread_radius=1, color=ft.Colors.BLACK12),
+                        on_hover=lambda e: setattr(e.control.content, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.content.update(),
                     )
                 )
             expense_list.controls.append(
                 ft.Text(
                     f"Total Today: Rs{sum(amt for _, amt in today_expenses):.2f}",
-                    size=14,
+                    size=12,
                     weight=ft.FontWeight.BOLD,
                     color=ft.Colors.BLACK87,
                     text_align=ft.TextAlign.RIGHT,
@@ -190,11 +343,12 @@ def expense_view(page: ft.Page, db: 'Database'):
                 ft.Container(
                     content=ft.Text(
                         "No expenses today",
-                        size=14,
+                        size=12,
                         color=ft.Colors.BLACK54,
                         text_align=ft.TextAlign.CENTER,
                     ),
                     padding=10,
+                    width=340,
                 )
             )
 
@@ -207,26 +361,51 @@ def expense_view(page: ft.Page, db: 'Database'):
             )
         )
         if selected_date_expenses:
-            for cat, amt in selected_date_expenses:
+            for idx, (cat, amt) in enumerate(selected_date_expenses):
+                expense_id = f"{selected_date.strftime('%Y-%m-%d')}_{idx}"  # Workaround if expense_id is missing
                 expense_list.controls.append(
-                    ft.Container(
-                        content=ft.Row(
-                            [
-                                ft.Text(f"{cat}", size=14, weight=ft.FontWeight.W_500, color=ft.Colors.BLACK87),
-                                ft.Text(f"Rs{amt:.2f}", size=14, weight=ft.FontWeight.BOLD, color=ft.Colors.RED_700),
-                            ],
-                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    ft.GestureDetector(
+                        content=ft.Container(
+                            content=ft.Row(
+                                [
+                                    ft.Text(f"{cat}", size=12, weight=ft.FontWeight.W_500, color=ft.Colors.BLACK87, max_lines=1),
+                                    ft.Row(
+                                        [
+                                            ft.Text(f"Rs{amt:.2f}", size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.RED_700),
+                                            ft.IconButton(
+                                                ft.Icons.EDIT,
+                                                icon_color=ft.Colors.BLUE_500,
+                                                icon_size=16,
+                                                tooltip="Edit",
+                                                on_click=lambda e, eid=expense_id, c=cat, a=amt: show_edit_expense_dialog(e, eid, c, a),
+                                            ),
+                                            ft.IconButton(
+                                                ft.Icons.DELETE,
+                                                icon_color=ft.Colors.RED_500,
+                                                icon_size=16,
+                                                tooltip="Delete",
+                                                on_click=lambda e, eid=expense_id, c=cat: show_delete_expense_dialog(e, eid, c),
+                                            ),
+                                        ],
+                                        alignment=ft.MainAxisAlignment.END,
+                                        spacing=5,
+                                    ),
+                                ],
+                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                            ),
+                            bgcolor=ft.Colors.WHITE,
+                            padding=10,
+                            border_radius=8,
+                            shadow=ft.BoxShadow(blur_radius=5, spread_radius=1, color=ft.Colors.BLACK12),
+                            width=340,
                         ),
-                        bgcolor=ft.Colors.WHITE,
-                        padding=10,
-                        border_radius=8,
-                        shadow=ft.BoxShadow(blur_radius=5, spread_radius=1, color=ft.Colors.BLACK12),
+                        on_hover=lambda e: setattr(e.control.content, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.content.update(),
                     )
                 )
             expense_list.controls.append(
                 ft.Text(
                     f"Total: Rs{sum(amt for _, amt in selected_date_expenses):.2f}",
-                    size=14,
+                    size=12,
                     weight=ft.FontWeight.BOLD,
                     color=ft.Colors.BLACK87,
                     text_align=ft.TextAlign.RIGHT,
@@ -237,11 +416,12 @@ def expense_view(page: ft.Page, db: 'Database'):
                 ft.Container(
                     content=ft.Text(
                         "No expenses on this date",
-                        size=14,
+                        size=12,
                         color=ft.Colors.BLACK54,
                         text_align=ft.TextAlign.CENTER,
                     ),
                     padding=10,
+                    width=340,
                 )
             )
         page.update()
@@ -263,22 +443,6 @@ def expense_view(page: ft.Page, db: 'Database'):
     expense_content = ft.Container(
         content=ft.ListView(
             controls=[
-                ft.Container(
-                    content=ft.Text(
-                        "Expenses",
-                        size=24,
-                        weight=ft.FontWeight.BOLD,
-                        color=ft.Colors.WHITE,
-                        font_family="Roboto",
-                        text_align=ft.TextAlign.CENTER,
-                    ),
-                    shadow=ft.BoxShadow(
-                        blur_radius=8,
-                        spread_radius=1,
-                        color=ft.Colors.BLACK26,
-                    ),
-                    padding=8,
-                ),
                 ft.ElevatedButton(
                     content=ft.Row(
                         [
@@ -310,27 +474,9 @@ def expense_view(page: ft.Page, db: 'Database'):
                         color=ft.Colors.BLACK26,
                     ),
                     margin=ft.margin.symmetric(horizontal=10, vertical=20),
-                    height=400,  # Fixed height for scrollable list
+                    height=400,
+                    width=340,
                 ),
-                # ft.ElevatedButton(
-                #     content=ft.Row(
-                #         [
-                #             ft.Icon(ft.Icons.ARROW_BACK, color=ft.Colors.BLUE_700, size=20),
-                #             ft.Text("Back to Dashboard", color=ft.Colors.BLUE_700, weight=ft.FontWeight.BOLD, size=14),
-                #         ],
-                #         alignment=ft.MainAxisAlignment.CENTER,
-                #         spacing=8,
-                #     ),
-                #     style=ft.ButtonStyle(
-                #         shape=ft.RoundedRectangleBorder(radius=10),
-                #         bgcolor=ft.Colors.WHITE,
-                #         padding=10,
-                #         elevation={"pressed": 2, "": 6},
-                #     ),
-                #     on_click=lambda e: page.go("/dashboard"),
-                #     opacity=1.0,
-                #     on_hover=lambda e: setattr(e.control, 'opacity', 0.8 if e.data == "true" else 1.0) or e.control.update(),
-                # ),
             ],
             expand=True,
             auto_scroll=True,
